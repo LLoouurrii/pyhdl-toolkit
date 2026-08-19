@@ -1,6 +1,6 @@
 from PipelineBuilder.PipelineBuilder import PipelineBuilder
 
-pipeline = PipelineBuilder("manual_test_ci.yml")
+pipeline = PipelineBuilder("manual_test.yml")
 
 prepare = pipeline.add_job(job_name="prepare", 
                            runs_on="ubuntu-latest")

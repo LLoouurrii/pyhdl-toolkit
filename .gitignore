@@ -1,1 +1,16 @@
 .venv/
+
+# Simulation/build artifacts
+build/
+e~*.o
+/alu
+/and_gate
+
+# Cocotb output
+results.xml
+*.vcd
+*.fst
+
+# Python
+__pycache__/
+*.py[cod]

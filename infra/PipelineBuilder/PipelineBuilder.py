@@ -1,62 +1,66 @@
-from YamlHandler.YamlHandler import YamlHandler, CommentedMap
+from ruamel.yaml import YAML
+from ruamel.yaml.comments import CommentedMap
+from typing import Self
+from pathlib import Path
+import logging
+import json
+
 from JobBuilder.JobBuilder import JobBuilder
 
 class PipelineBuilder:
-    def __init__(self, pipeline_file, 
-                descsription="New pipeline generated automatically by pyhdl-toolkit", 
-                rule="workflow_dispatch"):
+    
+    @staticmethod
+    def configure():
+        if not logging.getLogger().handlers:
+            logging.basicConfig(
+                level=logging.INFO,
+                format="[%(asctime)s] - [%(levelname)s] %(message)s",
+                datefmt="%Y-%m-%d %I:%M:%S %p")
+    
+    def __init__(
+        self, 
+        pipeline_file: str, 
+        descsription: str ="New pipeline generated automatically by pyhdl-toolkit", 
+        rule: str =""
+        ):
+        
+        self.configure()
         
         self.pipeline_file = pipeline_file
+        self.data_pipeline = CommentedMap()
+        self.job = {}
         
-        self.data = CommentedMap()
-        self.data["name"] = descsription
-        self.data["on"] = {}
+        self.data_pipeline["name"] = descsription
+        self.data_pipeline["on"] = {}
+        self.data_pipeline["on"]["workflow_dispatch"] = None
         
-        self.data["on"]["workflow_dispatch"] = None
+        path_workflow = Path(".github/workflows/")
+        path_workflow.mkdir(parents=True, exist_ok=True)
+        self.pipeline_file = Path(path_workflow) / self.pipeline_file
+        
+        logging.debug("Workflow directory: %s", path_workflow.resolve())
     
-    def add_job(self, job_name, runs_on):
-        job = JobBuilder(pipeline_file=self.pipeline_file, job_name=job_name, runs_on=runs_on)
-        self.data["jobs"] = job.return_data_job()
+    def add_job(self, job_name: str, runs_on: str, needs: str = "") -> JobBuilder:
         
-        return job
+        logging.info("Adding job %s to the pipeline %s",  job_name, self.pipeline_file)
         
-        
-    
-    def return_data(self):
-        print(self.data)
-        
-        self.data.yaml_set_comment_before_after_key("on", before="\n")
-        self.data.yaml_set_comment_before_after_key("jobs", before="\n")
-        
-        return self.data
-        
-    #     self.jobs = {}
+        self.job[job_name] = JobBuilder(job_name=job_name, runs_on=runs_on, needs=needs)
+        self.data_pipeline["jobs"] = self.job[job_name].return_data_job()
 
-    #     self.pipeline_file = YamlHandler(pipeline_file)
-    #     self.pipeline_file.clean_yaml()
+        return self.job[job_name]
         
-    #     data = {
-    #         "name": f"{descsription}",
-    #     }
+    def write_pipeline(self) -> CommentedMap:
         
-    #     self.pipeline_file.write_yaml(data=data)
-    #     self.pipeline_file.line_break()
+        logging.info("Starting pipeline file generation %s", self.pipeline_file)
         
-    #     data = {
-    #         'on': {
-    #             f"{rule}": None
-    #         }
-    #     }
+        yaml = YAML()
         
-    #     self.pipeline_file.write_yaml(data=data)
-    #     self.pipeline_file.line_break()
-
-    # def create_job(self, job_name, runs_on):
+        self.data_pipeline.yaml_set_comment_before_after_key("on", before="\n")
+        self.data_pipeline.yaml_set_comment_before_after_key("jobs", before="\n")
         
-    #     job = JobBuilder(pipeline_file=self.pipeline_file,
-    #                     job_name=job_name, 
-    #                     runs_on=runs_on)
+        logging.info("Witring data in %s \n%s", self.pipeline_file, json.dumps(self.data_pipeline, indent=2))
         
-    #     self.jobs[job_name] = job
-        
-    #     return job
+        with open(self.pipeline_file, "w") as f:
+            yaml.dump(self.data_pipeline, f)
+            
+        logging.info("Pipeline successfully written")

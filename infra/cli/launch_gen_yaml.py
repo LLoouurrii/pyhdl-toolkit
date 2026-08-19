@@ -1,25 +1,38 @@
 from PipelineBuilder.PipelineBuilder import PipelineBuilder
-from JobBuilder.JobBuilder import JobBuilder
-from ruamel.yaml import YAML
-
-yaml = YAML()
 
 pipeline = PipelineBuilder("manual_test_ci.yml")
 
-prepare = pipeline.add_job(job_name="prepare", runs_on="ubuntu-latest")
-prepare.add_step(name_uses="Checkout code")
+prepare = pipeline.add_job(job_name="prepare", 
+                           runs_on="ubuntu-latest")
 
-data = pipeline.return_data()
+prepare.add_step(name_step="Checkout code", 
+                 uses="actions/checkout@v5")
 
-file = "manual_test_ci.yml"
+prepare.add_step(name_step="Setup Python",
+                 python_version="3.11")
 
-with open("manual_test_ci.yml", "w") as f:
-    yaml.dump(data, f, )
+cmd_install_dependencies = "echo 'Prepare env here'"
+prepare.add_step(name_step="Install dependencies",
+                 cmd=cmd_install_dependencies)
 
+test = pipeline.add_job(job_name="test", 
+                        runs_on="ubuntu-latest",
+                        needs="prepare")
 
+test.add_step(name_step="Checkout code", 
+                 uses="actions/checkout@v5")
 
-# prepare = pipeline.create_job(job_name="prepare",
-#                            runs_on="ubuntu-latest")
+cmd_launch_test = "echo 'Test here...'"
+test.add_step(name_step="Run tests", 
+                 cmd=cmd_launch_test)
 
-# prepare.add_step(step_name="Checkout code",
-#                  uses="checkout@v5")
+deploy = pipeline.add_job(job_name="deploy", 
+                        runs_on="ubuntu-latest",
+                        needs="test")
+
+cmd_deployment = "echo 'Deploy result here...'"
+
+deploy.add_step(name_step="Deploy result here...", 
+                 cmd=cmd_deployment)
+
+pipeline.write_pipeline()

@@ -1,7 +1,7 @@
 name: CI/CD Pipeline
 
 on:
-    workflow_dispatch:
+  workflow_dispatch:
 
 jobs:
   prepare:
@@ -37,3 +37,83 @@ jobs:
     steps:
       - name: Deploy application
         run: echo "Deploy result here..."
+# {'prepare': {'runs-on': 'ubuntu-latest', 'steps': [{'name': 'Checkout code', 'uses': 'actions/checkout@v5'}, {'name': 'Setup Python', 'uses': 'actions/setup-python@v6', 'with': {'python-version': '3.11'}}, {'name': 'Install dependencies', 'run': 'echo "Prepare env here..."'}]}, 'test': {'runs-on': 'ubuntu-latest', 'needs': 'prepare', 'steps': [{'name': 'Checkout code', 'uses': 'actions/checkout@v5'}, {'name': 'Run tests', 'run': 'echo "Test here..."'}]}, 'deploy': {'runs-on': 'ubuntu-latest', 'needs': 'test', 'steps': [{'name': 'Deploy application', 'run': 'echo "Deploy result here..."'}]}}
+
+# import yaml
+
+# data = {
+#     "name": "CI/CD Pipeline",
+#     "on": {
+#         "workflow_dispatch": None
+#     },
+#     "jobs": {
+#         "prepare": {
+#             "runs-on": "ubuntu-latest",
+#             "steps": [
+#                 {
+#                     "name": "Checkout code",
+#                     "uses": "actions/checkout@v5"
+#                 },
+#                 {
+#                     "name": "Setup Python",
+#                     "uses": "actions/setup-python@v6",
+#                     "with": {
+#                         "python-version": "3.11"
+#                     }
+#                 },
+#                 {
+#                     "name": "Install dependencies",
+#                     "run": 'echo "Prepare env here..."'
+#                 }
+#             ]
+#         },
+#         "test": {
+#             "runs-on": "ubuntu-latest",
+#             "needs": "prepare",
+#             "steps": [
+#                 {
+#                     "name": "Checkout code",
+#                     "uses": "actions/checkout@v5"
+#                 },
+#                 {
+#                     "name": "Run tests",
+#                     "run": 'echo "Test here..."'
+#                 }
+#             ]
+#         },
+#         "deploy": {
+#             "runs-on": "ubuntu-latest",
+#             "needs": "test",
+#             "steps": [
+#                 {
+#                     "name": "Deploy application",
+#                     "run": 'echo "Deploy result here..."'
+#                 }
+#             ]
+#         }
+#     }
+# }
+
+# yaml_str = yaml.dump(data, sort_keys=False)
+
+# yaml_str = yaml_str.replace(
+#     "jobs:",
+#     "jobs:\n"
+# )
+
+# yaml_str = yaml_str.replace(
+#     "  test:",
+#     "\n  test:"
+# )
+
+# yaml_str = yaml_str.replace(
+#     "  deploy:",
+#     "\n  deploy:"
+# )
+
+# file = "manual_test_ci.yml"
+
+# with open(file, "w", encoding="utf-8") as f:
+#     f.write(yaml_str)
+
+# print(data["jobs"])
